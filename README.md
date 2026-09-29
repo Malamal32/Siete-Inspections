@@ -1,32 +1,24 @@
 # Siete Safety Inspections
 
-Static app (`public/index.html`) + API (`public/_worker.js`) on Cloudflare Pages.
+A Cloudflare Worker that serves the app (`public/index.html`) and its API (`src/worker.js`).
 Inspections and checklists are stored in **D1**; photos in **R2**.
 
 ## Repo layout
 ```
-public/index.html            the app (single file)
-public/_worker.js            API: /api/health, /api/templates, /api/inspections, /api/photos
-schema.sql                   D1 tables
+wrangler.jsonc     Worker config: static files, D1 + R2 bindings
+public/index.html  the app (single file)
+src/worker.js      API: /api/health, /api/templates, /api/inspections, /api/photos
+schema.sql         D1 tables
 ```
 
 ## One-time setup
-1. **GitHub** – create a private repo (e.g. `siete-inspections`) and upload the contents of this folder (keep the folder structure).
-2. **D1** – Cloudflare dashboard → Storage & Databases → D1 → Create → name `siete-inspections`. Open it → Console → paste `schema.sql` → Execute.
-3. **R2** – R2 → Create bucket → name `siete-photos` (leave it private).
-4. **Pages** – Workers & Pages → Create → Pages → Connect to Git → pick the repo.
-   - Framework preset: **None** · Build command: *(empty)* · Output directory: **public**
-5. **Bindings** – the new Pages project → Settings → Bindings → Add:
-   - D1 database: variable name **DB** → `siete-inspections`
-   - R2 bucket: variable name **PHOTOS** → `siete-photos`
-   Then Deployments → Retry deployment so the bindings take effect.
-6. **Lock it down** – Zero Trust → Access → Applications → Add → Self-hosted → your `*.pages.dev` domain (or custom domain). Allow your company email domain. Without this, anyone with the link can see inspections.
+1. **D1**: Storage & databases → D1 → Create → name `siete-inspections`. Open it → Console → paste `schema.sql` → Execute. Copy the **Database ID** from the database's overview.
+2. **R2**: R2 → Create bucket → name `siete-photos` (keep it private).
+3. **wrangler.jsonc**: in GitHub, edit the file and replace `PASTE-YOUR-D1-DATABASE-ID-HERE` with that Database ID. Commit.
+4. **Build settings** (Workers & Pages → siete-inspections → Settings → Build): Build command empty, Deploy command `npx wrangler deploy`, Root directory `/`.
+5. **Lock it down**: Zero Trust → Access → Applications → Add → Self-hosted → your `siete-inspections.<account>.workers.dev` domain. Allow only your company emails.
 
-Open the site: the app detects `/api/health` and uses the server automatically. If the server is unreachable it falls back to the device and shows a notice.
+Each commit to `main` redeploys automatically. When the app opens on the live site it finds `/api/health` and uses the server. If the server can't be reached, it saves on the device and shows a notice.
 
-## Updating
-Any commit to the main branch redeploys automatically. For app changes, replace `public/index.html` with the new build.
-
-## Notes
-- Inspections created earlier in the standalone file stay on that device; they don't copy to the server.
-- Photos are uploaded when an inspection saves; the database keeps only their links.
+## Updating the app
+Replace `public/index.html` with the new build and commit.
