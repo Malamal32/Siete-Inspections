@@ -11,7 +11,7 @@
     {
       "binding": "DB",
       "database_name": "siete-inspections",
-      "database_id": "PASTE-YOUR-D1-DATABASE-ID-HERE"
+      "database_id": "64246c40-846d-4181-9186-8d6bd321581c"
     }
   ],
   "r2_buckets": [
